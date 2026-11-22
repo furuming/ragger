@@ -57,7 +57,7 @@
 | Generation | Ollama |
 | Embedding | Ollama |
 | Vector Database | Qdrant |
-| Metadata Database | Postgres |
+| Metadata Database | PostgreSQL |
 | Infrastructure | Docker Compose |
 | Package Management | uv / npm |
 
@@ -104,7 +104,7 @@
                                 Answer + Sources
 ```
 
-Metadata DatabaseにはSQLiteを使用する。
+Metadata DatabaseにはPostgreSQLを使用する。
 
 文書ファイルはローカルファイルシステムに保存する。
 
@@ -298,7 +298,7 @@ LangGraph NodeにQdrantやOllamaへのアクセス処理を直接実装しない
 
 # 7. データベース設計
 
-## 7.1 SQLite
+## 7.1 PostgreSQL
 
 文書メタデータを管理する。
 
@@ -306,16 +306,16 @@ documentsテーブルを作成する。
 
 | Column | Type | Description |
 |---|---|---|
-| id | TEXT PRIMARY KEY | 文書UUID |
-| filename | TEXT | 元ファイル名 |
+| id | UUID PRIMARY KEY | 文書UUID |
+| filename | VARCHAR(255) | 元ファイル名 |
 | file_path | TEXT | 保存先 |
-| file_type | TEXT | ファイル形式 |
-| content_hash | TEXT | SHA-256 |
-| status | TEXT | 取り込み状態 |
+| file_type | VARCHAR(16) | ファイル形式 |
+| content_hash | CHAR(64) | SHA-256 |
+| status | VARCHAR(16) | 取り込み状態 |
 | chunk_count | INTEGER | Chunk数 |
 | error_message | TEXT NULL | エラー情報 |
-| created_at | DATETIME | 作成日時 |
-| updated_at | DATETIME | 更新日時 |
+| created_at | TIMESTAMPTZ | 作成日時 |
+| updated_at | TIMESTAMPTZ | 更新日時 |
 
 取り込み状態は以下とする。
 
@@ -551,7 +551,7 @@ rag-platform/
 ├── configs/
 ├── data/
 │   ├── uploads/
-│   ├── sqlite/
+│   ├── postgres/
 │   └── qdrant/
 ├── compose.yaml
 ├── Makefile
@@ -573,6 +573,7 @@ Docker Composeを使用する。
 ```text
 frontend
 backend
+postgres
 qdrant
 ollama
 ```
@@ -581,7 +582,7 @@ OllamaについてはGPU環境やOSの違いを考慮し、ホスト環境での
 
 以下を満たすこと。
 
-- SQLiteを永続化する。
+- PostgreSQLを永続化する。
 - Qdrantを永続化する。
 - アップロードファイルを永続化する。
 - サービス間の接続先は環境変数で管理する。
@@ -679,7 +680,7 @@ OllamaについてはGPU環境やOSの違いを考慮し、ホスト環境での
 対象：
 
 - PDF対応
-- SQLite文書管理
+- PostgreSQL文書管理
 - 文書一覧
 - 文書削除
 - 再取り込み
@@ -812,7 +813,7 @@ Phase 1〜5を具体的なタスクに分解してください。
 - Qdrant Collection設計
 - PDF Parser
 - Chunking方式
-- SQLiteアクセス方式
+- PostgreSQLアクセス方式
 - 文書取り込みの非同期処理方式
 - FrontendとBackendの通信方式
 - LangGraph State設計
